@@ -14,6 +14,11 @@ class ProductModel(models.Model):
 		on_delete=models.CASCADE,
 		related_name='products'
 	)
+	lessons = models.ManyToManyField(
+		'LessonModel',
+		through='LessonProductModel',
+		related_name='products'
+	)
 	access = models.ManyToManyField(
 		'UserModel',
 		through='AccessModel'
@@ -25,14 +30,22 @@ class LessonModel(models.Model):
 	description = models.TextField()
 	link = models.SlugField()
 	duration = models.DurationField()
-	product = models.ForeignKey(
-		'ProductModel',
-		on_delete=models.CASCADE,
-		related_name='lessons'
-	)
 	views = models.ManyToManyField(
 		'UserModel',
 		through='ViewsModel'
+	)
+
+
+class LessonProductModel(models.Model):
+	product = models.ForeignKey(
+		'ProductModel',
+		on_delete=models.CASCADE,
+		related_name='plm'
+	)
+	lesson = models.ForeignKey(
+		'LessonModel',
+		on_delete=models.CASCADE,
+		related_name='plm'
 	)
 
 
@@ -55,10 +68,13 @@ class AccessModel(models.Model):
 class ViewsModel(models.Model):
 	user = models.ForeignKey(
 		'UserModel',
-		on_delete=models.CASCADE
+		on_delete=models.CASCADE,
+		related_name='vws'
 	)
 	lesson = models.ForeignKey(
 		'LessonModel',
-		on_delete=models.CASCADE
+		on_delete=models.CASCADE,
+		related_name='vws'
 	)
 	duration = models.DurationField()
+	date = models.DateTimeField(auto_now_add=True)

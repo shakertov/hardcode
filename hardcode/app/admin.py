@@ -4,7 +4,8 @@ from app.models import (
 	ProductModel,
 	LessonModel,
 	AccessModel,
-	ViewsModel
+	ViewsModel,
+	LessonProductModel
 )
 
 @admin.register(UserModel)
@@ -26,3 +27,7 @@ class AccessModelAdmin(admin.ModelAdmin):
 @admin.register(ViewsModel)
 class ViewsModelAdmin(admin.ModelAdmin):
     list_display = ['user', 'lesson', 'duration']
+
+@admin.register(LessonProductModel)
+class LessonProductModelAdmin(admin.ModelAdmin):
+    list_display = ['lesson', 'product']

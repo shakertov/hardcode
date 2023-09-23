@@ -5,9 +5,10 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from app.models import ProductModel, UserModel
+from app.serializers import ProductSerializer, LessonSerializer
 
 def index(request):
-	return HttpResponse('sdfsdf', 200)
+	return HttpResponse('Привет! Это API приложение!', 200)
 
 @api_view(['GET', 'POST'])
 def get_all(request):
@@ -18,23 +19,28 @@ def get_all(request):
 	"""
 	if request.method == 'POST':
 		try:
-			user = UserModel.objects.get(id=3)
+			user_id = request.data['ID_U']
+			user = UserModel.objects.get(id=user_id)
 			products = ProductModel.objects.filter(acc__user_id=user.id, acc__value=True)
-			data = {
-				'ID': 'ID пользователя ' + str(request.data['ID']),
-				'DATA': str(products)
-			}
-			return Response(data, status=status.HTTP_200_OK)
+			products = ProductSerializer(products, many=True, context={'request': request})
+			return Response(products.data, status=status.HTTP_200_OK)
 		except KeyError:
 			return Response(
 				{'error': 'Необходимо отправить идентификатор пользователя'},
 				status=status.HTTP_401_UNAUTHORIZED
 			)
+		except UserModel.DoesNotExist:
+			return Response(
+				{'error': 'Такого пользователя не существует'},
+				status=status.HTTP_404_NOT_FOUND
+			)
+
 	data = {
 		'error': 'Необходимо отправить идентификатор пользователя'
 	}
 	return Response(data, status=status.HTTP_401_UNAUTHORIZED)
 
+@api_view(['GET', 'POST'])
 def get_all_from_product(request):
 	"""
 	Отдает пользователю список всех уроков
@@ -42,7 +48,36 @@ def get_all_from_product(request):
 	Получает от пользователя его ID и
 	идентификатор продукта PRODUCT ID.
 	"""
+	if request.method == 'POST':
+		try:
+			user_id = request.data['ID_U']
+			product_id = request.data['ID_P']
+			user = UserModel.objects.get(id=user_id)
+			lessons = ProductModel.objects.get(id=product_id, acc__user_id=user.id, acc__value=True).lessons
+			lessons = LessonSerializer(lessons, many=True, context={'request': request})
+			return Response(lessons.data, status=status.HTTP_200_OK)
+		except KeyError:
+			return Response(
+				{'error': 'Необходимо отправить идентификатор пользователя и идентификатор продукта'},
+				status=status.HTTP_401_UNAUTHORIZED
+			)
+		except UserModel.DoesNotExist:
+			return Response(
+				{'error': 'Такого пользователя не существует'},
+				status=status.HTTP_404_NOT_FOUND
+			)
+		except ProductModel.DoesNotExist:
+			return Response(
+				{'error': 'Такого продукта не существует или у пользователя нет доступа к нему'},
+				status=status.HTTP_404_NOT_FOUND
+			)
 
+	data = {
+		'error': 'Необходимо отправить идентификатор пользователя и идентификатор продукта'
+	}
+	return Response(data, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['GET'])
 def statistic(request):
 	"""
 	Отдает пользователю статистику

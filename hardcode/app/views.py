@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from app.models import ProductModel, UserModel
-from app.serializers import ProductSerializer, LessonSerializer
+from app.serializers import ProductSerializer, LessonSerializer, ListProductsSerializer
 
 def index(request):
 	return HttpResponse('Привет! Это API приложение!', 200)
@@ -83,3 +83,6 @@ def statistic(request):
 	Отдает пользователю статистику
 	по всей платформе
 	"""
+	products = ProductModel.objects.all()
+	products = ListProductsSerializer(products, many=True)
+	return Response(products.data, status.HTTP_200_OK)

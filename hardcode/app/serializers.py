@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from app.models import ProductModel, LessonModel, ViewsModel
-
+from app.models import ProductModel, LessonModel, ViewsModel, UserModel
+from django.db.models import Sum
+import datetime
 
 class LessonSerializer(serializers.ModelSerializer):
 	status = serializers.SerializerMethodField()
@@ -42,19 +43,42 @@ class ProductSerializer(serializers.ModelSerializer):
 	lessons = LessonSerializer(read_only=True, many=True)
 	class Meta:
 		model = ProductModel
-		fields = ['title', 'description', 'lessons']
+		fields = ['id', 'title', 'description', 'lessons']
 
 
 class ListProductsSerializer(serializers.ModelSerializer):
-	total_views = 0
-	total_duration = 0
-	total_students = 0
-	total_purchase = 0
+	total_views = serializers.SerializerMethodField()
+	total_duration = serializers.SerializerMethodField()
+	total_students = serializers.SerializerMethodField()
+	total_purchase = serializers.SerializerMethodField()
 
 	class Meta:
 		model = ProductModel
-		fields = ['title', 'description', 'total_views', 'total_duration', 'total_students', 'total_purchase']
+		fields = ['id', 'title', 'description', 'total_views', 'total_duration', 'total_students', 'total_purchase']
 
 	def get_total_views(self, obj):
-		pass
-	
+		views = 0
+		for lesson in obj.lessons.all():
+			views += lesson.views.count()
+		return views
+
+	def get_total_duration(self, obj):
+		duration = 0
+		for lesson in obj.lessons.all():
+			for v in lesson.vws.all():
+				duration += v.duration.total_seconds()
+		return str(datetime.timedelta(seconds=duration))
+
+	def get_total_students(self, obj):
+		students = obj.access.count()
+		return students
+
+	def get_total_purchase(self, obj):
+		users_all_amount = UserModel.objects.count()
+		students = obj.access.count()
+		try:
+			total_purchase = students / users_all_amount
+		except ZeroDivisionError:
+			return 0
+		return str(total_purchase * 100) + ' %'
+

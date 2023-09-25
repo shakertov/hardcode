@@ -31,7 +31,7 @@ python -m venv venv
 . venv/bin/activate
 pip install -r requirements.txt
 ```
-База данных с тестовыми данными находится в репозитории проекта. Данные суперпользователя: admin@admin.ru admin
+База данных с тестовыми данными находится в репозитории проекта. Данные суперпользователя: admin@admin.ru admin admin
 
 ## Endpoints API
 
